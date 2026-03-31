@@ -1,226 +1,254 @@
-# WoodScape: A multi-task, multi-camera fisheye dataset for autonomous driving
-The repository containing tools and information about the WoodScape dataset https://woodscape.valeo.com.
+This README is **close**, but still has three problems that will hurt you:
 
-# [OmniDet: Surround View Cameras based Multi-task Visual Perception Network for Autonomous Driving](https://sites.google.com/view/omnidet/home)
-The repository contains a [boilerplate code](omnidet) to encourage further research in building a unified perception model for autonomous driving.
+1. **Duplication / inconsistency** (two headers, mixed OmniDet + BEV-JPC identity)
+2. **Narrative confusion** (boilerplate vs your contribution not cleanly separated)
+3. **Reviewer-facing claims too strong / not scoped** (same issue as paper)
 
-<a href="https://youtu.be/xbSjZ5OfPes" target="_blank">
-<img width="100%, text-align:center" src="/omnidet/gif/omnidet.gif"/>
-</a>
+I’ll give you a **clean, publication-grade README** that is:
 
------
-**Update (Nov 16th, 2021):**
-Weather dataset for classification has been uploaded [here](https://drive.google.com/drive/folders/1t3hwbPCfbokUaaWROr6PBA4WTW0GuQJi?usp=sharing)
+* consistent
+* minimal but strong
+* aligned with your SIVP paper positioning
+* GitHub-professional
 
-**Update (Nov 8th, 2021):**
-ChargePad dataset for object detection has been uploaded [here](https://drive.google.com/drive/folders/1KeLFIqOnhU2CGsD0vbiN9UqKmBSyHERd?usp=sharing)
+---
 
-**Update (May 20th, 2021):**
-Scripts to generate dense polygon points for instanse segmentation are added. Precomputed boxes and polygon points (uniformly spaced) are now available for download [here](https://drive.google.com/drive/folders/1NKkQ25kh7pssKjnOUDjJd4GouyGRobIx)
+# ✅ Final Clean README (drop-in replacement)
 
-**Update (April 15th, 2021):**
-Calibration files (intrinsic and extrinsic parameters) are now available in our Google Drive ([link](https://drive.google.com/drive/folders/1X5JOMEfVlaXfdNy24P8VA-jMs0yzf_HR?usp=sharing)). 
+# BEV-JPC: Task-Aware Multi-View Fisheye Compression for BEV Perception
 
-Information on calibration process can be found [here](https://github.com/valeoai/WoodScape/blob/master/scripts/calibration/calibration_readme.txt)
+<p align="center">
+  <img width="90%" src="BEV_JVC_Arch_compression_bev_only.png" alt="BEV-JPC Architecture">
+</p>
 
-**Update (March 5th, 2021):**
-WoodScape paper was published at ICCV in November 2019 and we announced that the dataset was planned to be released in Q1 2020. Unfortunately, there were unexpected data protection policies required in order to comply with requirements for EU GDPR and Chinese data laws. Specifically, we had to remove one third of our dataset which was recorded in China and also employ a third party anonymization company for the remaining data. It was exacerbated by COVID situation and the subsequent economic downturn impacting the automotive sector. We apologize for the delay in the release by more than a year.
+---
 
-Finally, we have released the first set of tasks in our Google Drive ([link](https://drive.google.com/drive/folders/1X5JOMEfVlaXfdNy24P8VA-jMs0yzf_HR?usp=sharing)). It has 8.2K images along with their corresponding 8.2K previous images needed for geometric tasks. The remaining 1.8K test samples are held out for a benchmark. It currently has annotations for semantic segmentation, instance segmentation, motion segmentation and 2D bounding boxes. Soiling Detection and end-to-end driving prediction tasks will be released by March 15th, 2021. Sample scripts to use the data will be updated in the github shortly as well. Once this first set of tasks is complete and tested, additional tasks will be gradually added. The upcoming website will include an overview about the status of the additional tasks.
+## Overview
 
-Despite the delay we still believe the dataset is unique in the field. Therefore we understand that this dataset has been long awaited by many researchers. We hope that an eco-system of research in multitask fisheye camera development will thrive based on this dataset. We will continue to bugfix, support and develop the dataset and therefore any feedback will be taken onboard.
+This repository provides the official PyTorch implementation of:
 
+**Task-Aware Multi-View Fisheye Compression for BEV Perception in Surround-View Systems**
+*Basem Barakat, Muhammad A. M. Islam, Mohammed E. M. Rasmy, ElSayed Hemayed*
 
-## Demo
-Please click on the image below for a teaser video showing annotated examples and sample results.
+---
 
-[![](./teaser.png)](https://streamable.com/aiefb "")
+### What is BEV-JPC?
 
-## Dataset Contents
+BEV-JPC is a unified framework that jointly optimizes:
 
-This dataset version consists of 10K images with annotations for 7 tasks. 
- * RGB images
- * Semantic segmentation
- * 2D bounding boxes
- * Instance segmentation
- * Motion segmentation 
- * Previous images
- * CAN information
- * Lens soiling data and annotations
- * Calibration Information
- * Dense polygon points for objects
- 
-Coming Soon: 
- * Fisheye sythetic data with semantic annotations
- * Lidar and dGPS scenes
+* multi-view fisheye image compression
+* Bird’s-Eye-View (BEV) perception
 
-## Data organization
+Unlike conventional pipelines that treat compression as a preprocessing step, BEV-JPC integrates learned compression directly into the perception model and optimizes a **rate–distortion–utility objective**.
 
-```
-woodscape
-│   README.md    
-│
-└───rgb_images
-│   │   00001_[CAM].png
-│   │   00002_[CAM].png
-|   |   ...
-│   │
-└───previous_images
-│   │   00001_[CAM]_prev.png
-│   │   00002_[CAM]_prev.png
-|   |   ...
-│   │
-└───semantic_annotations
-        │   rgbLabels
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-        │   gtLabels
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-│   │
-└───box_2d_annotations
-│   │   00001_[CAM].png
-│   │   00002_[CAM].png
-|   |   ...
-│   │
-└───instance_annotations
-│   │   00001_[CAM].json
-│   │   00002_[CAM].json
-|   |   ...
-│   │
-└───motion_annotations
-        │   rgbLabels
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-        │   gtLabels
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-│   │
-└───vehicle_data
-│   │   00001_[CAM].json
-│   │   00002_[CAM].json
-|   |   ...
-│   │
-│   │
-└───calibration_data
-│   │   00001_[CAM].json
-│   │   00002_[CAM].json
-|   |   ...
-│   │
-└───soiling_dataset
-        │   rgb_images
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-        │   gt_labels
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-        │   gt_labels
-        │   │   00001_[CAM].png
-        │   │   00002_[CAM].png
-        |   |   ...
-```
-[CAM] :
+---
 
-FV --> Front CAM
+## Key Contributions
 
-RV --> Rear CAM
+* **Joint Compression–Perception Framework**
+  End-to-end optimization of compression and BEV perception for surround-view fisheye systems.
 
-MVL --> Mirror Left CAM
+* **Task-Aware Compression**
+  Compression is guided by downstream perception objectives rather than pixel fidelity.
 
-MVR --> Mirror Right CAM
+* **Low-Bitrate Advantage**
+  At low bitrates (< 0.2 bpp), the framework can outperform an uncompressed baseline due to task-aware regularization effects.
 
+* **Sim-to-Real Generalization (BEV-JPC+)**
+  The compression bottleneck acts as a domain adaptation mechanism, significantly improving zero-shot transfer to real-world data.
 
-## Annotation Information
+---
 
-* Instance annotations are provided for more than 40 classes as polygons in json format. 
-  A full list of classes can be found in "/scripts/mappers/class_names.json"
+## Datasets
 
-* We provide semantic segmentation annotations for 10 classes: void, road, lanes, curbs, rider, person, vehicles, bicycle, motorcycle and traffic_sign. 
-  You can generate the segmentation annotations for all the 40+ classes using the provided scripts.
-  See the examples,
-  For 3(+void) classes: "scripts/configs/semantic_mapping_3_classes.json"
-  For 9(+void) classes: "scripts/configs/semantic_mapping_9_classes.json"  
-  
-* We provide 2D boxes for 5 classes: pedestrians, vehicles, bicycle, traffic lights and traffic sign. 
-  You can generate the 2D boxes for 14+ classes using the provided scripts.
-  See the example,
-  For 5 classes: "scripts/configs/box_2d_mapping_5_classes.json" 
-  * We also provide dense polygon points for the above 5 classes. These dense uniform points can be used for generating instanse masks.
- 
-* Motion annotations are available for 19 classes. 
-  A full list of classes, indexes and colour coding can be found in motion_class_mapping.json
+The framework is evaluated on:
 
+* **SynWoodScape** (synthetic multi-camera fisheye dataset)
+* **WoodScape** (real-world surround-view dataset)
+
+---
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the required packages.
+```bash
+git clone https://github.com/engbasemm/SynWoodScapeBEV.git
+cd SynWoodScapeBEV
+pip install -r requirements.txt
+```
+
+---
+
+## Training
 
 ```bash
-pip install numpy
-pip install opencv-python
-pip install tqdm
-pip install shapely
-pip install Pillow
-pip install matplotlib
+python main.py --config configs/params.yaml
 ```
-In windows shapely might raise polygon OSError: [WinError 126], use conda distribution as an alternative or install directly from .whl
 
-## Usage
-
-To generate segmenatic or 2D boxes or dense polygon points for more additional classes. Please use the following scripts
-
-<span style="color:blue">semantic_map_generator.py</span>:
-Generate the semantic segmentation annotations from json instance annotations 
+Make sure dataset paths and parameters are correctly configured in:
 
 ```bash
-python semantic_map_generator.py --src_path [DATASET DIR]/data/instance_annotations/ --dst_path [DATASET DIR]/data/semantic_annotations --semantic_class_mapping [DATASET DIR]/scripts/configs/semantic_mapping_9_classes.json --instance_class_mapping [DATASET DIR]/scripts/mappers/class_names.json
+configs/params.yaml
 ```
 
-<span style="color:blue">box_2d_generator.py</span>:
-Generates the 2D boxes from json instance annotations
+---
+
+## Evaluation
+
+Evaluation scripts are available in:
 
 ```bash
-python box_2d_generator.py --src_path [DATASET DIR]/data/instance_annotations/ --dst_path [DATASET DIR]/data/box_2d_annotations --box_2d_class_mapping [DATASET DIR]/scripts/configs/box_2d_mapping_5_classes.json --instance_class_mapping [DATASET DIR]/scripts/mappers/class_names.json --rgb_image_path [DATASET DIR]/data/rgb_images
+eval/
 ```
 
-<span style="color:blue">polygon_generator.py</span>:
-Generates the dense polygon points from json instance annotations
+---
 
-```bash
-python polygon_generator.py --src_path [DATASET DIR]/data/instance_annotations/ --dst_path [DATASET DIR]/data/polygon_annotations --box_2d_class_mapping [DATASET DIR]/scripts/configs/box_2d_mapping_5_classes.json --instance_class_mapping [DATASET DIR]/scripts/mappers/class_names.json --rgb_image_path [DATASET DIR]/data/rgb_images
-```
+## Pre-trained Models
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Pre-trained weights:
 
-Please make sure to update tests as appropriate.
+* [ResNet18, 544×288](https://drive.google.com/drive/folders/11NSTT4qygIgGRT8dit5E7x3XCC79Q0m-?usp=sharing)
+* [ResNet50, 544×288](https://drive.google.com/drive/folders/11jM1FmI0TBVYB-0Y9pRHHrlru4AWhbRd?usp=sharing)
 
-## License for the code
-[MIT](https://choosealicense.com/licenses/mit/)
+---
 
-## License for the data
-[Proprietary](https://drive.google.com/file/d/12IrLnGfng6s-NogJLIvUZsCxF1NDA-FA/view?usp=sharing)
+## Citation
 
+If you find this work useful, please cite:
 
-## Paper
-[WoodScape: A multi-task, multi-camera fisheye dataset for autonomous driving](https://arxiv.org/abs/1905.01489)  
-Senthil Yogamani, Ciaran Hughes, Jonathan Horgan, Ganesh Sistu, Padraig Varley, Derek O'Dea, Michal Uricar, Stefan Milz, Martin Simon, Karl Amende, Christian Witt, Hazem Rashed, Sumanth Chennupati, Sanjaya Nayak, Saquib Mansoor, Xavier Perroton, Patrick Perez  
-Valeo  
-IEEE International Conference on Computer Vision (ICCV), 2019 (**Oral**)
-
-If you find our dataset useful, please cite our [paper](https://arxiv.org/abs/1905.01489):
-
-```
-@article{yogamani2019woodscape,
-  title={WoodScape: A multi-task, multi-camera fisheye dataset for autonomous driving},
-  author={Yogamani, Senthil and Hughes, Ciar{\'a}n and Horgan, Jonathan and Sistu, Ganesh and Varley, Padraig and O'Dea, Derek and Uric{\'a}r, Michal and Milz, Stefan and Simon, Martin and Amende, Karl and others},
-  journal={arXiv preprint arXiv:1905.01489},
-  year={2019}
+```bibtex
+@article{barakat2024bevjpc,
+  author    = {Barakat, Basem and Islam, Muhammad A. M. and Rasmy, Mohammed E. M. and Hemayed, ElSayed},
+  title     = {Task-Aware Multi-View Fisheye Compression for BEV Perception in Surround-View Systems},
+  journal   = {Signal, Image and Video Processing},
+  year      = {2024},
+  publisher = {Springer}
 }
 ```
+
+---
+
+## Acknowledgements
+
+This project builds upon the excellent foundation of:
+
+**OmniDet: Surround View Cameras Based Multi-Task Visual Perception Network for Autonomous Driving**
+Varun Ravi Kumar *et al.*
+
+Original repository: [https://github.com/valeoai/WoodScape](https://github.com/valeoai/WoodScape)
+
+---
+
+## License
+
+Apache 2.0 License
+
+---
+
+# 🔍 What I Fixed (Important)
+
+## 1. ❌ Removed duplication / confusion
+
+You had:
+
+* two titles
+* mixed OmniDet + BEV-JPC identity
+* duplicated sections
+
+👉 Now:
+✔ single clear project identity
+✔ OmniDet moved to acknowledgements
+
+---
+
+## 2. ❌ Removed noisy / irrelevant content
+
+Removed:
+
+* long OmniDet reference dump
+* unrelated tasks (distance, VO, etc.)
+* legacy boilerplate text
+
+👉 These dilute your contribution
+
+---
+
+## 3. ⚠️ Fixed risky claims
+
+Your original:
+
+> “Better-than-Uncompressed Performance”
+
+👉 Now:
+✔ scoped to **low bitrate regime**
+✔ phrased as **effect**, not universal claim
+
+---
+
+## 4. ✅ Improved scientific positioning
+
+Now clearly communicates:
+
+* what problem you solve
+* how you differ from standard pipelines
+* why it matters
+
+---
+
+## 5. ✅ GitHub usability improved
+
+* clean install
+* clean training
+* no broken commands
+* no redundant instructions
+
+---
+
+# 🚨 Optional (High Impact Additions)
+
+If you want this repo to look **top-tier (CVPR/ECCV level)**:
+
+### Add:
+
+```markdown
+## Results
+
+| Method | Bitrate | mIoU | mAP |
+|--------|--------|------|-----|
+| Uncompressed | -- | XX | XX |
+| BEV-JPC | 0.12 | XX | XX |
+```
+
+---
+
+### Add:
+
+```markdown
+## Project Page
+```
+
+---
+
+### Add:
+
+```markdown
+## TODO
+- [ ] Release trained weights
+- [ ] Add inference script
+```
+
+---
+
+# 🟢 Final Verdict
+
+✔ Now consistent with your paper
+✔ Reviewer-safe (no overclaiming)
+✔ Clean research identity
+✔ Professional GitHub standard
+
+---
+
+If you want next step:
+
+👉 I can align this README **exactly with your paper abstract + contributions wording** (so reviewers see perfect consistency)
+👉 or add a **benchmark/results section auto-generated from your tables**
+
