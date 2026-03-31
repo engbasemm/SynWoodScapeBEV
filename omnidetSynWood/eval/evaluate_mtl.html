@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codec and DL Model Performance Evaluation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .plot-container {
+            position: relative;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .plot-svg {
+            width: 100%;
+            max-width: 800px; /* Max width for consistent plot size */
+            height: 450px;
+            background-color: #ffffff;
+            border: 1px solid #e0e7ff;
+            border-radius: 8px;
+            margin-top: 20px;
+            overflow: visible; /* Allow labels to overflow slightly */
+        }
+        .axis-label {
+            font-size: 14px;
+            font-weight: 500;
+            fill: #555;
+        }
+        .tick-label {
+            font-size: 12px;
+            fill: #777;
+        }
+        .grid-line {
+            stroke: #e2e8f0;
+            stroke-width: 0.5;
+            stroke-dasharray: 2,2;
+        }
+        .data-point {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            stroke: rgba(0, 0, 0, 0.2);
+            stroke-width: 1px;
+        }
+        .data-point:hover {
+            transform: scale(1.5);
+            opacity: 0.8;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 15px;
+            font-size: 14px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #e0e7ff;
+            font-weight: 600;
+            color: #2a4365;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        tr:hover {
+            background-color: #edf2f7;
+        }
+        .dataset-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #cbd5e0;
+        }
+        .dataset-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .plot-subsection-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-800">Codec and DL Model Performance Evaluation</h1>
+
+        <div id="plots-container">
+            <!-- Plots for each dataset will be dynamically added here -->
+        </div>
+
+        <h2 class="text-2xl font-semibold text-center mb-6 text-gray-700">Detailed Data Table</h2>
+        <div id="data-table-container" class="overflow-x-auto rounded-lg">
+            <!-- Table will be generated here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- This script tag will be populated by the Python script -->
+    <script id="plot-data" type="application/json">
+        {"datasets": {"Fisheye8k_Image_Only": {"dl_models": [{"Model Name": "RES50_Baseline_no_compression", "BPP": null, "PSNR": null, "MS_SSIM": null, "MSE": null, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_A_ChengAtten", "BPP": 0.9115711152553558, "PSNR": 24.544202939157984, "MS_SSIM": 0.9499976850218244, "MSE": 0.003539254449100958, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_B_ChengAtten", "BPP": 0.6604321160250239, "PSNR": 24.18388124146486, "MS_SSIM": 0.92028330018123, "MSE": 0.0038199466620830614, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_C_ChengAtten", "BPP": 0.30882319435477257, "PSNR": 24.096613774120833, "MS_SSIM": 0.9257852377163039, "MSE": 0.003909563998200206, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_D_ChengAtten", "BPP": 0.12008132402681643, "PSNR": 21.940854778001956, "MS_SSIM": 0.8930533859464858, "MSE": 0.006403015848870079, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_AA_Factorized", "BPP": 8.0, "PSNR": 21.543419476462994, "MS_SSIM": 0.9344392816225687, "MSE": 0.007017423437597851, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_A_Factorized", "BPP": 2.0, "PSNR": 18.46246150023073, "MS_SSIM": 0.8426284483737416, "MSE": 0.01429525762796402, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}, {"Model Name": "Model_B_Factorized", "BPP": 1.5, "PSNR": 19.1527374498935, "MS_SSIM": 0.8577023645242056, "MSE": 0.01218449828835825, "mAP": null, "mIoU": null, "ResNet Type": "RES50"}], "traditional_codecs": [{"Codec": "HM HEVC QP33", "BPP": 0.5913025655864197, "PSNR": 30.52549165603692, "MS_SSIM": 0.9799091302686267, "MSE": 0.0008868622341348479}, {"Codec": "HM HEVC QP36", "BPP": 0.4319746561819172, "PSNR": 28.661475421031145, "MS_SSIM": 0.972521154416932, "MSE": 0.0013620104065113184}, {"Codec": "HM HEVC QP39", "BPP": 0.30122307893064637, "PSNR": 26.818744231002086, "MS_SSIM": 0.9621069629987081, "MSE": 0.002081612501772017}, {"Codec": "HM HEVC QP42", "BPP": 0.20000028367828612, "PSNR": 24.914670392473884, "MS_SSIM": 0.9453334526883231, "MSE": 0.003226771232827256}, {"Codec": "HM HEVC QP45", "BPP": 0.12705241240014523, "PSNR": 23.14482242200614, "MS_SSIM": 0.9200119740433164, "MSE": 0.004849870792693562}, {"Codec": "JPEG2000 Q0", "BPP": 0.7994408700980392, "PSNR": 24.49043206073692, "MS_SSIM": 0.942616633243031, "MSE": 0.0035606829009743202}, {"Codec": "JPEG2000 Q1", "BPP": 0.4782347834967321, "PSNR": 22.608010696534336, "MS_SSIM": 0.9101513624191284, "MSE": 0.005490278657008376}, {"Codec": "JPEG2000 Q2", "BPP": 0.23913795842411034, "PSNR": 20.587145287455716, "MS_SSIM": 0.8503399888674418, "MSE": 0.008743443759158254}, {"Codec": "JPEG2000 Q3", "BPP": 0.16013284654139434, "PSNR": 19.732502792602965, "MS_SSIM": 0.8093476287192769, "MSE": 0.010643476012369825}, {"Codec": "JPEG2000 Q4", "BPP": 0.1261020901416122, "PSNR": 19.189923883715565, "MS_SSIM": 0.7807781398296356, "MSE": 0.012061072384110756}]}, "Woodscape": {"dl_models": [{"Model Name": "RES50_Baseline_no_compression", "BPP": null, "PSNR": null, "MS_SSIM": null, "MSE": null, "mAP": 0.35216006295424657, "mIoU": 0.557589729154646, "ResNet Type": "RES50"}, {"Model Name": "Model_A_ChengAtten", "BPP": 0.9395522751978466, "PSNR": 23.528519291430094, "MS_SSIM": 0.9333651654777073, "MSE": 0.00567620772718718, "mAP": 0.39784974368526016, "mIoU": 0.5546697912810428, "ResNet Type": "RES50"}, {"Model Name": "Model_B_ChengAtten", "BPP": 0.6739393536533628, "PSNR": 23.153780469277816, "MS_SSIM": 0.9158655880462556, "MSE": 0.005639469514357015, "mAP": 0.36973506904904196, "mIoU": 0.5593365102541963, "ResNet Type": "RES50"}, {"Model Name": "Model_C_ChengAtten", "BPP": 0.31379806055199533, "PSNR": 23.243290166855484, "MS_SSIM": 0.9164661942493348, "MSE": 0.005580272666910397, "mAP": 0.36502368664512963, "mIoU": 0.5561434774407636, "ResNet Type": "RES50"}, {"Model Name": "Model_D_ChengAtten", "BPP": 0.12847794867342427, "PSNR": 20.58369862650475, "MS_SSIM": 0.8344419236694064, "MSE": 0.009580458109710543, "mAP": 0.3502991717291469, "mIoU": 0.5656903245385674, "ResNet Type": "RES50"}, {"Model Name": "Model_AA_Factorized", "BPP": 8.0, "PSNR": 22.707619257094287, "MS_SSIM": 0.930130843605314, "MSE": 0.005720226992187756, "mAP": 0.27634050986717446, "mIoU": 0.5170010700688005, "ResNet Type": "RES50"}, {"Model Name": "Model_A_Factorized", "BPP": 2.0, "PSNR": 20.548202194904526, "MS_SSIM": 0.8613105849141166, "MSE": 0.009353961097076535, "mAP": 0.3738666099457633, "mIoU": 0.54589340892112, "ResNet Type": "RES50"}, {"Model Name": "Model_B_Factorized", "BPP": 1.5, "PSNR": 20.75540972182074, "MS_SSIM": 0.8526752562749953, "MSE": 0.00889201185366671, "mAP": 0.3538866625538927, "mIoU": 0.5521970131383316, "ResNet Type": "RES50"}], "traditional_codecs": [{"Codec": "HM HEVC QP33", "BPP": 0.6149042950513539, "PSNR": 30.16048297889419, "MS_SSIM": 0.9560144926820483, "MSE": 0.0009858257121994115}, {"Codec": "HM HEVC QP36", "BPP": 0.421645828470277, "PSNR": 28.35760212867221, "MS_SSIM": 0.938110670873097, "MSE": 0.001501598828499915}, {"Codec": "HM HEVC QP39", "BPP": 0.2791193734438219, "PSNR": 26.622688680194408, "MS_SSIM": 0.9167194153581347, "MSE": 0.0022498498077593034}, {"Codec": "HM HEVC QP42", "BPP": 0.1770608416977902, "PSNR": 24.916480114848643, "MS_SSIM": 0.8901048735493705, "MSE": 0.003348503407323733}, {"Codec": "HM HEVC QP45", "BPP": 0.10357641320417056, "PSNR": 23.266382888988996, "MS_SSIM": 0.8542915625231606, "MSE": 0.004930368395954636}, {"Codec": "JPEG2000 Q0", "BPP": 0.7985630884298164, "PSNR": 25.289177844165778, "MS_SSIM": 0.9001204513368153, "MSE": 0.0033876856659411543}, {"Codec": "JPEG2000 Q1", "BPP": 0.47850164371304077, "PSNR": 23.55303414395104, "MS_SSIM": 0.8663077077695301, "MSE": 0.004981976962881163}, {"Codec": "JPEG2000 Q2", "BPP": 0.23881557831465922, "PSNR": 21.840718183175028, "MS_SSIM": 0.8211003435509545, "MSE": 0.0072248450333496465}, {"Codec": "JPEG2000 Q3", "BPP": 0.1596225295673825, "PSNR": 21.10971279236285, "MS_SSIM": 0.7877012540896734, "MSE": 0.008465592350278581}, {"Codec": "JPEG2000 Q4", "BPP": 0.12612032660286335, "PSNR": 20.747444774518883, "MS_SSIM": 0.768781222757839, "MSE": 0.00915864551123897}]}}}
+    </script>
+
+    <script>
+        // Placeholder for data injected by Python
+        let plotData = {};
+
+        // Function to extract data from the script tag
+        function loadPlotData() {
+            const scriptTag = document.getElementById('plot-data');
+            if (scriptTag && scriptTag.textContent) {
+                try {
+                    // Replace NaN with null for valid JSON parsing
+                    const jsonString = scriptTag.textContent.replace(/NaN/g, 'null');
+                    plotData = JSON.parse(jsonString);
+                    console.log("Loaded plot data:", plotData);
+                } catch (e) {
+                    console.error("Error parsing plot data:", e);
+                }
+            } else {
+                console.warn("No plot data found in script tag. Using dummy data.");
+                // Fallback to dummy data for development if needed, or handle no data gracefully
+                plotData = {
+                    datasets: {
+                        "Fisheye8k_Image_Only": {
+                            traditional_codecs: [
+                                { "Codec": "HM HEVC QP33", "BPP": 0.591, "PSNR": 30.53, "MS_SSIM": 0.97991, "MSE": 0.00089 },
+                                { "Codec": "HM HEVC QP36", "BPP": 0.432, "PSNR": 28.66, "MS_SSIM": 0.97252, "MSE": 0.00136 },
+                                { "Codec": "HM HEVC QP39", "BPP": 0.301, "PSNR": 26.82, "MS_SSIM": 0.96211, "MSE": 0.00208 },
+                                { "Codec": "HM HEVC QP42", "BPP": 0.200, "PSNR": 24.91, "MS_SSIM": 0.94533, "MSE": 0.00323 },
+                                { "Codec": "HM HEVC QP45", "BPP": 0.127, "PSNR": 23.14, "MS_SSIM": 0.92001, "MSE": 0.00485 },
+                                { "Codec": "JPEG2000 Q0", "BPP": 0.799, "PSNR": 24.49, "MS_SSIM": 0.94262, "MSE": 0.00356 },
+                                { "Codec": "JPEG2000 Q1", "BPP": 0.478, "PSNR": 22.61, "MS_SSIM": 0.91015, "MSE": 0.00549 },
+                                { "Codec": "JPEG2000 Q2", "BPP": 0.239, "PSNR": 20.59, "MS_SSIM": 0.85034, "MSE": 0.00874 },
+                                { "Codec": "JPEG2000 Q3", "BPP": 0.160, "PSNR": 19.73, "MS_SSIM": 0.80935, "MSE": 0.01064 },
+                                { "Codec": "JPEG2000 Q4", "BPP": 0.126, "PSNR": 19.19, "MS_SSIM": 0.78078, "MSE": 0.01206 }
+                            ],
+                            dl_models: [
+                                { "Model Name": "RES50_Baseline_no_compression", "BPP": null, "PSNR": null, "MS_SSIM": null, "MSE": null, "mAP": null, "mIoU": null },
+                                { "Model Name": "Model_A_ChengAtten", "BPP": 0.912, "PSNR": 24.54, "MS_SSIM": 0.95000, "MSE": 0.00354, "mAP": null, "mIoU": null },
+                                { "Model Name": "Model_B_ChengAtten", "BPP": 0.660, "PSNR": 24.18, "MS_SSIM": 0.92028, "MSE": 0.00382, "mAP": null, "mIoU": null },
+                                { "Model Name": "Model_C_ChengAtten", "BPP": 0.309, "PSNR": 24.10, "MS_SSIM": 0.92579, "MSE": 0.00391, "mAP": null, "mIoU": null },
+                                { "Model Name": "Model_D_ChengAtten", "BPP": 0.120, "PSNR": 21.94, "MS_SSIM": 0.89305, "MSE": 0.00640, "mAP": null, "mIoU": null }
+                            ]
+                        },
+                        "Woodscape": {
+                            traditional_codecs: [
+                                { "Codec": "HM HEVC QP33", "BPP": 0.615, "PSNR": 30.16, "MS_SSIM": 0.95601, "MSE": 0.00099 },
+                                { "Codec": "HM HEVC QP36", "BPP": 0.422, "PSNR": 28.36, "MS_SSIM": 0.93811, "MSE": 0.00150 },
+                                { "Codec": "HM HEVC QP39", "BPP": 0.279, "PSNR": 26.62, "MS_SSIM": 0.91672, "MSE": 0.00225 },
+                                { "Codec": "HM HEVC QP42", "BPP": 0.177, "PSNR": 24.92, "MS_SSIM": 0.89010, "MSE": 0.00335 },
+                                { "Codec": "HM HEVC QP45", "BPP": 0.104, "PSNR": 23.27, "MS_SSIM": 0.85429, "MSE": 0.00493 },
+                                { "Codec": "JPEG2000 Q0", "BPP": 0.799, "PSNR": 25.29, "MS_SSIM": 0.90012, "MSE": 0.00339 },
+                                { "Codec": "JPEG2000 Q1", "BPP": 0.479, "PSNR": 23.55, "MS_SSIM": 0.86631, "MSE": 0.00498 },
+                                { "Codec": "JPEG2000 Q2", "BPP": 0.239, "PSNR": 21.84, "MS_SSIM": 0.82110, "MSE": 0.00722 },
+                                { "Codec": "JPEG2000 Q3", "BPP": 0.160, "PSNR": 21.11, "MS_SSIM": 0.78770, "MSE": 0.00847 },
+                                { "Codec": "JPEG2000 Q4", "BPP": 0.126, "PSNR": 20.75, "MS_SSIM": 0.76878, "MSE": 0.00916 }
+                            ],
+                            dl_models: [
+                                { "Model Name": "RES50_Baseline_no_compression", "BPP": null, "PSNR": null, "MS_SSIM": null, "MSE": null, "mAP": 0.3522, "mIoU": 0.5576 },
+                                { "Model Name": "Model_A_ChengAtten", "BPP": 0.940, "PSNR": 23.53, "MS_SSIM": 0.93337, "MSE": 0.00568, "mAP": 0.3978, "mIoU": 0.5547 },
+                                { "Model Name": "Model_B_ChengAtten", "BPP": 0.674, "PSNR": 23.15, "MS_SSIM": 0.91587, "MSE": 0.00564, "mAP": 0.3697, "mIoU": 0.5593 },
+                                { "Model Name": "Model_C_ChengAtten", "BPP": 0.314, "PSNR": 23.24, "MS_SSIM": 0.91647, "MSE": 0.00558, "mAP": 0.3650, "mIoU": 0.5561 },
+                                { "Model Name": "Model_D_ChengAtten", "BPP": 0.128, "PSNR": 20.58, "MS_SSIM": 0.83444, "MSE": 0.00958, "mAP": 0.3503, "mIoU": 0.5657 }
+                            ]
+                        }
+                    }
+                };
+            }
+        }
+
+        // Colors for different categories
+        const colors = {
+            'HEVC': '#4c78d6',      // Blue for HEVC
+            'JPEG2000': '#2ca02c',  // Green for JPEG2000
+            'ChengAtten DL Model': '#e02424', // Red for ChengAtten DL models
+            'Factorized DL Model': '#9400D3', // Dark Violet for Factorized DL models
+            'Baseline': '#718096'   // Grey for Baseline
+        };
+
+        // Marker shapes for different categories
+        const markers = {
+            'HEVC': 'circle',
+            'JPEG2000': 'square',
+            'ChengAtten DL Model': 'triangle',
+            'Factorized DL Model': 'cross', // Using 'cross' for Factorized
+            'Baseline': 'diamond'
+        };
+
+        function getCodecCategory(name) {
+            if (name.includes("HEVC")) return 'HEVC';
+            if (name.includes("JPEG2000")) return 'JPEG2000';
+            if (name.includes("ChengAtten")) return 'ChengAtten DL Model';
+            if (name.includes("Factorized")) return 'Factorized DL Model';
+            return 'Unknown';
+        }
+
+        // Define plotting parameters
+        const SVG_WIDTH = 800;
+        const SVG_HEIGHT = 450;
+        const MARGIN = { top: 40, right: 40, bottom: 60, left: 70 };
+        const PLOT_WIDTH = SVG_WIDTH - MARGIN.left - MARGIN.right;
+        const PLOT_HEIGHT = SVG_HEIGHT - MARGIN.top - MARGIN.bottom;
+
+        function drawMarker(plotGroup, type, x, y, size, fill, stroke, strokeWidth) {
+            if (type === 'circle') {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", x);
+                circle.setAttribute("cy", y);
+                circle.setAttribute("r", size);
+                circle.setAttribute("fill", fill);
+                circle.setAttribute("stroke", stroke);
+                circle.setAttribute("stroke-width", strokeWidth);
+                plotGroup.appendChild(circle);
+            } else if (type === 'square') {
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                const halfSize = size / Math.sqrt(2); // For similar visual size to circle
+                rect.setAttribute("x", x - halfSize);
+                rect.setAttribute("y", y - halfSize);
+                rect.setAttribute("width", size * Math.sqrt(2));
+                rect.setAttribute("height", size * Math.sqrt(2));
+                rect.setAttribute("fill", fill);
+                rect.setAttribute("stroke", stroke);
+                rect.setAttribute("stroke-width", strokeWidth);
+                plotGroup.appendChild(rect);
+            } else if (type === 'triangle') {
+                const triangleHeight = size * 2;
+                const triangleBase = size * 2 * Math.sqrt(3) / 2; // Equilateral triangle
+                const points = `${x},${y - triangleHeight / 2} ${x - triangleBase / 2},${y + triangleHeight / 2} ${x + triangleBase / 2},${y + triangleHeight / 2}`;
+                const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                polygon.setAttribute("points", points);
+                polygon.setAttribute("fill", fill);
+                polygon.setAttribute("stroke", stroke);
+                polygon.setAttribute("stroke-width", strokeWidth);
+                plotGroup.appendChild(polygon);
+            } else if (type === 'diamond') {
+                const halfSize = size * 1.5;
+                const points = `${x},${y - halfSize} ${x + halfSize},${y} ${x},${y + halfSize} ${x - halfSize},${y}`;
+                const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                polygon.setAttribute("points", points);
+                polygon.setAttribute("fill", fill);
+                polygon.setAttribute("stroke", stroke);
+                polygon.setAttribute("stroke-width", strokeWidth);
+                plotGroup.appendChild(polygon);
+            } else if (type === 'cross') { // New marker for 'cross'
+                const line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line1.setAttribute("x1", x - size);
+                line1.setAttribute("y1", y - size);
+                line1.setAttribute("x2", x + size);
+                line1.setAttribute("y2", y + size);
+                line1.setAttribute("stroke", fill); // Use fill color for stroke
+                line1.setAttribute("stroke-width", strokeWidth * 2); // Make it a bit thicker
+                plotGroup.appendChild(line1);
+
+                const line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line2.setAttribute("x1", x - size);
+                line2.setAttribute("y1", y + size);
+                line2.setAttribute("x2", x + size);
+                line2.setAttribute("y2", y - size);
+                line2.setAttribute("stroke", fill);
+                line2.setAttribute("stroke-width", strokeWidth * 2);
+                plotGroup.appendChild(line2);
+            }
+        }
+
+
+        function createPlot(parentDivId, yAxisLabel, yMetricKey, tooltipId, datasetName, plotType) {
+            const parentDiv = document.getElementById(parentDivId);
+            // Generate a unique SVG ID based on parentDivId, yMetricKey, and datasetName
+            const svgId = `${parentDivId}-${yMetricKey.toLowerCase()}-plot`;
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("id", svgId);
+            svg.classList.add("plot-svg");
+            parentDiv.appendChild(svg);
+
+            const tooltip = document.createElement('div');
+            tooltip.setAttribute("id", tooltipId);
+            tooltip.classList.add("tooltip");
+            parentDiv.appendChild(tooltip);
+
+            const dataset = plotData.datasets[datasetName];
+            if (!dataset) {
+                console.error(`Dataset ${datasetName} not found.`);
+                return;
+            }
+
+            let dataToPlot = [];
+            let baselineValue = null;
+            let baselineName = null;
+
+            if (plotType === 'quality') { // PSNR, MS-SSIM, MSE vs BPP
+                dataset.traditional_codecs.forEach(d => {
+                    if (d.BPP !== null && !isNaN(d.BPP) && d[yMetricKey] !== null && !isNaN(d[yMetricKey])) {
+                        dataToPlot.push({
+                            name: d.Codec,
+                            bpp: d.BPP,
+                            yValue: d[yMetricKey],
+                            category: getCodecCategory(d.Codec)
+                        });
+                    }
+                });
+                dataset.dl_models.forEach(d => {
+                    // Exclude all "Factorized" models from quality plots
+                    if (d['Model Name'] !== "RES50_Baseline_no_compression" && !d['Model Name'].includes("Factorized") && d.BPP !== null && !isNaN(d.BPP) && d[yMetricKey] !== null && !isNaN(d[yMetricKey])) {
+                        dataToPlot.push({
+                            name: d['Model Name'],
+                            bpp: d.BPP,
+                            yValue: d[yMetricKey],
+                            category: getCodecCategory(d['Model Name']) // Assign specific DL category
+                        });
+                    }
+                });
+            } else if (plotType === 'task') { // mAP, mIoU vs BPP
+                const baselineModel = dataset.dl_models.find(d => d['Model Name'] === "RES50_Baseline_no_compression");
+                if (baselineModel && baselineModel[yMetricKey] !== null && !isNaN(baselineModel[yMetricKey])) {
+                    baselineValue = baselineModel[yMetricKey];
+                    baselineName = baselineModel['Model Name'];
+                }
+
+                dataset.dl_models.forEach(d => {
+                    // Exclude "Model_AA_Factorized" from task plots (as per previous request)
+                    if (d['Model Name'] !== "RES50_Baseline_no_compression" && d['Model Name'] !== "Model_AA_Factorized" && d.BPP !== null && !isNaN(d.BPP) && d[yMetricKey] !== null && !isNaN(d[yMetricKey])) {
+                        dataToPlot.push({
+                            name: d['Model Name'],
+                            bpp: d.BPP,
+                            yValue: d[yMetricKey],
+                            category: getCodecCategory(d['Model Name']) // Assign specific DL category
+                        });
+                    }
+                });
+            }
+
+            // Filter out null or NaN BPP values for min/max calculation
+            const validBPPs = dataToPlot.map(d => d.bpp).filter(b => b !== null && !isNaN(b));
+            const validYValues = dataToPlot.map(d => d.yValue).filter(y => y !== null && !isNaN(y));
+
+            // Add baseline value to Y values for scaling if it exists
+            if (baselineValue !== null && !isNaN(baselineValue)) {
+                validYValues.push(baselineValue);
+            }
+
+            if (validBPPs.length === 0 || validYValues.length === 0) {
+                console.warn(`No valid data to plot for ${datasetName} - ${yMetricKey} (${plotType}).`);
+                svg.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="16px" fill="#777">No data available for this plot.</text>`;
+                return;
+            }
+
+            const minBPP = Math.min(...validBPPs);
+            const maxBPP = Math.max(...validBPPs);
+            const minY = Math.min(...validYValues);
+            const maxY = Math.max(...validYValues);
+
+            // Adjust ranges slightly for padding on the graph
+            const paddingFactorBPP = (maxBPP - minBPP) * 0.1;
+            const paddedMinBPP = Math.max(0, minBPP - paddingFactorBPP);
+            const paddedMaxBPP = maxBPP + paddingFactorBPP;
+
+            const paddingFactorY = (maxY - minY) * 0.1;
+            const paddedMinY = minY - paddingFactorY;
+            const paddedMaxY = maxY + paddingFactorY;
+
+            // Handle cases where range is zero (e.g., all BPPs are the same)
+            const rangeBPP = paddedMaxBPP - paddedMinBPP;
+            const rangeY = paddedMaxY - paddedMinY;
+
+            const scaleX = (value) => MARGIN.left + (value - paddedMinBPP) / (rangeBPP === 0 ? 1 : rangeBPP) * PLOT_WIDTH;
+            const scaleY = (value) => MARGIN.top + PLOT_HEIGHT - (value - paddedMinY) / (rangeY === 0 ? 1 : rangeY) * PLOT_HEIGHT;
+
+            // Group for plot elements
+            const plotGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            plotGroup.setAttribute("transform", `translate(0,0)`);
+            svg.appendChild(plotGroup);
+
+            // Add X-axis
+            const xAxisGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            xAxisGroup.setAttribute("transform", `translate(0, ${MARGIN.top + PLOT_HEIGHT})`);
+            plotGroup.appendChild(xAxisGroup);
+
+            const xAxisLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            xAxisLine.setAttribute("x1", MARGIN.left);
+            xAxisLine.setAttribute("y1", 0);
+            xAxisLine.setAttribute("x2", MARGIN.left + PLOT_WIDTH);
+            xAxisLine.setAttribute("y2", 0);
+            xAxisLine.setAttribute("stroke", "#555");
+            xAxisGroup.appendChild(xAxisLine);
+
+            // X-axis ticks
+            const numXTicks = 5;
+            for (let i = 0; i <= numXTicks; i++) {
+                const bppValue = paddedMinBPP + (paddedMaxBPP - paddedMinBPP) * (i / numXTicks);
+                const xPos = scaleX(bppValue);
+                const tickLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                tickLine.setAttribute("x1", xPos);
+                tickLine.setAttribute("y1", 0);
+                tickLine.setAttribute("x2", xPos);
+                tickLine.setAttribute("y2", 6);
+                tickLine.setAttribute("stroke", "#777");
+                xAxisGroup.appendChild(tickLine);
+
+                const tickLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                tickLabel.setAttribute("x", xPos);
+                tickLabel.setAttribute("y", 20);
+                tickLabel.setAttribute("text-anchor", "middle");
+                tickLabel.classList.add("tick-label");
+                tickLabel.textContent = bppValue.toFixed(2);
+                xAxisGroup.appendChild(tickLabel);
+
+                // Vertical grid lines
+                const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                gridLine.setAttribute("x1", xPos);
+                gridLine.setAttribute("y1", -PLOT_HEIGHT);
+                gridLine.setAttribute("x2", xPos);
+                gridLine.setAttribute("y2", 0);
+                gridLine.classList.add("grid-line");
+                xAxisGroup.appendChild(gridLine);
+            }
+
+            // X-axis label
+            const xAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            xAxisLabel.setAttribute("x", MARGIN.left + PLOT_WIDTH / 2);
+            xAxisLabel.setAttribute("y", SVG_HEIGHT - 10);
+            xAxisLabel.setAttribute("text-anchor", "middle");
+            xAxisLabel.classList.add("axis-label");
+            xAxisLabel.textContent = "BPP";
+            svg.appendChild(xAxisLabel);
+
+            // Add Y-axis
+            const yAxisGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            yAxisGroup.setAttribute("transform", `translate(${MARGIN.left}, 0)`);
+            plotGroup.appendChild(yAxisGroup);
+
+            const yAxisLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            yAxisLine.setAttribute("x1", 0);
+            yAxisLine.setAttribute("y1", MARGIN.top);
+            yAxisLine.setAttribute("x2", 0);
+            yAxisLine.setAttribute("y2", MARGIN.top + PLOT_HEIGHT);
+            yAxisLine.setAttribute("stroke", "#555");
+            yAxisGroup.appendChild(yAxisLine);
+
+            // Y-axis ticks
+            const numYTicks = 5;
+            for (let i = 0; i <= numYTicks; i++) {
+                const yValue = paddedMinY + (paddedMaxY - paddedMinY) * (i / numYTicks);
+                const yPos = scaleY(yValue);
+                const tickLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                tickLine.setAttribute("x1", 0);
+                tickLine.setAttribute("y1", yPos - MARGIN.top);
+                tickLine.setAttribute("x2", -6);
+                tickLine.setAttribute("y2", yPos - MARGIN.top);
+                tickLine.setAttribute("stroke", "#777");
+                yAxisGroup.appendChild(tickLine);
+
+                const tickLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                tickLabel.setAttribute("x", -10);
+                tickLabel.setAttribute("y", yPos - MARGIN.top + 4);
+                tickLabel.setAttribute("text-anchor", "end");
+                tickLabel.classList.add("tick-label");
+                tickLabel.textContent = yValue.toFixed(yMetricKey === 'MS_SSIM' || yMetricKey === 'MSE' ? 5 : 2);
+                yAxisGroup.appendChild(tickLabel);
+
+                // Horizontal grid lines
+                const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                gridLine.setAttribute("x1", 0);
+                gridLine.setAttribute("y1", yPos - MARGIN.top);
+                gridLine.setAttribute("x2", PLOT_WIDTH);
+                gridLine.setAttribute("y2", yPos - MARGIN.top);
+                gridLine.classList.add("grid-line");
+                yAxisGroup.appendChild(gridLine);
+            }
+
+            // Y-axis label
+            const yAxisLabelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            yAxisLabelText.setAttribute("x", -(MARGIN.top + PLOT_HEIGHT / 2));
+            yAxisLabelText.setAttribute("y", MARGIN.left - 40);
+            yAxisLabelText.setAttribute("transform", "rotate(-90)");
+            yAxisLabelText.setAttribute("text-anchor", "middle");
+            yAxisLabelText.classList.add("axis-label");
+            yAxisLabelText.textContent = yAxisLabel;
+            svg.appendChild(yAxisLabelText);
+
+            // Group data by category for drawing curves
+            const dataByCategory = dataToPlot.reduce((acc, d) => {
+                if (!acc[d.category]) {
+                    acc[d.category] = [];
+                }
+                acc[d.category].push(d);
+                return acc;
+            }, {});
+
+            // Plot curves and data points
+            for (const category in dataByCategory) {
+                const categoryData = dataByCategory[category].sort((a, b) => a.bpp - b.bpp); // Sort by BPP for lines
+
+                // Draw lines (only for categories that should have lines)
+                if (category === 'HEVC' || category === 'JPEG2000' || category === 'ChengAtten DL Model' || category === 'Factorized DL Model') {
+                    const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+                    const points = categoryData.map(d => `${scaleX(d.bpp)},${scaleY(d.yValue)}`).join(" ");
+                    polyline.setAttribute("points", points);
+                    polyline.setAttribute("fill", "none");
+                    polyline.setAttribute("stroke", colors[category]);
+                    polyline.setAttribute("stroke-width", 2);
+                    plotGroup.appendChild(polyline);
+                }
+
+                // Draw markers and add tooltips
+                categoryData.forEach(d => {
+                    const x = scaleX(d.bpp);
+                    const y = scaleY(d.yValue);
+
+                    drawMarker(plotGroup, markers[d.category], x, y, 5, colors[d.category], 'rgba(0,0,0,0.2)', 1);
+
+                    // Tooltip events
+                    const targetElement = plotGroup.lastChild; // The last drawn marker
+                    targetElement.onmouseover = (event) => {
+                        tooltip.style.opacity = 1;
+                        tooltip.innerHTML = `<strong>${d.name} (${d.category})</strong><br>Dataset: ${datasetName}<br>BPP: ${d.bpp.toFixed(3)}<br>${yAxisLabel}: ${d.yValue.toFixed(yMetricKey === 'MS_SSIM' || yMetricKey === 'MSE' ? 5 : 2)}`;
+                        tooltip.style.left = `${event.pageX + 10}px`;
+                        tooltip.style.top = `${event.pageY + 10}px`;
+                    };
+                    targetElement.onmousemove = (event) => {
+                        tooltip.style.left = `${event.pageX + 10}px`;
+                        tooltip.style.top = `${event.pageY + 10}px`;
+                    };
+                    targetElement.onmouseout = () => {
+                        tooltip.style.opacity = 0;
+                    };
+                });
+            }
+
+            // Draw Baseline if applicable
+            if (plotType === 'task' && baselineValue !== null && !isNaN(baselineValue)) {
+                const yBaseline = scaleY(baselineValue);
+                const baselineLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                baselineLine.setAttribute("x1", scaleX(paddedMinBPP));
+                baselineLine.setAttribute("y1", yBaseline);
+                baselineLine.setAttribute("x2", scaleX(paddedMaxBPP));
+                baselineLine.setAttribute("y2", yBaseline);
+                baselineLine.setAttribute("stroke", colors['Baseline']);
+                baselineLine.setAttribute("stroke-width", 2);
+                baselineLine.setAttribute("stroke-dasharray", "5,5"); // Dashed line for baseline
+                plotGroup.appendChild(baselineLine);
+
+                // Add label for baseline
+                const baselineLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                baselineLabel.setAttribute("x", scaleX(paddedMaxBPP) + 5);
+                baselineLabel.setAttribute("y", yBaseline + 5);
+                baselineLabel.setAttribute("font-size", "12px");
+                baselineLabel.setAttribute("fill", colors['Baseline']);
+                baselineLabel.textContent = `${baselineName}: ${baselineValue.toFixed(yMetricKey === 'mAP' || yMetricKey === 'mIoU' ? 4 : 2)}`;
+                plotGroup.appendChild(baselineLabel);
+            }
+
+            // Add Legend
+            // Clear existing legend first if any associated with the parentDiv
+            let existingLegend = parentDiv.querySelector('.legend');
+            if (existingLegend) {
+                existingLegend.remove();
+            }
+            const legendDiv = document.createElement('div');
+            legendDiv.classList.add('legend');
+            parentDiv.appendChild(legendDiv);
+
+            const categoriesInPlot = new Set(dataToPlot.map(d => d.category));
+            if (plotType === 'task' && baselineValue !== null) {
+                categoriesInPlot.add('Baseline');
+            }
+
+            for (const category of Object.keys(colors)) {
+                if (categoriesInPlot.has(category)) {
+                    const legendItem = document.createElement('div');
+                    legendItem.classList.add('legend-item');
+                    const markerSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    markerSvg.setAttribute("width", "20");
+                    markerSvg.setAttribute("height", "20");
+                    drawMarker(markerSvg, markers[category], 10, 10, 5, colors[category], 'rgba(0,0,0,0.1)', 1);
+                    legendItem.appendChild(markerSvg);
+                    const span = document.createElement('span');
+                    span.textContent = category;
+                    legendItem.appendChild(span);
+                    legendDiv.appendChild(legendItem);
+                }
+            }
+        }
+
+
+        // Create the plots on window load
+        window.onload = () => {
+            loadPlotData(); // Load data first
+            const plotsContainer = document.getElementById('plots-container');
+
+            for (const datasetName in plotData.datasets) {
+                const datasetSection = document.createElement('div');
+                datasetSection.classList.add('dataset-section');
+                plotsContainer.appendChild(datasetSection);
+
+                const datasetTitle = document.createElement('h2');
+                datasetTitle.classList.add('dataset-title');
+                datasetTitle.textContent = `Dataset: ${datasetName}`;
+                datasetSection.appendChild(datasetTitle);
+
+                // Quality Metrics Plots (PSNR, MS-SSIM, MSE)
+                const qualityPlotDiv = document.createElement('div');
+                qualityPlotDiv.classList.add('plot-section');
+                qualityPlotDiv.id = `quality-plot-container-${datasetName.replace(/\s/g, '_')}`; // Assign unique ID
+                datasetSection.appendChild(qualityPlotDiv);
+
+                const qualityPlotTitle = document.createElement('h3');
+                qualityPlotTitle.classList.add('plot-subsection-title');
+                qualityPlotTitle.textContent = `Quality Metrics (PSNR, MS-SSIM, MSE) vs BPP`;
+                qualityPlotDiv.appendChild(qualityPlotTitle);
+
+                createPlot(qualityPlotDiv.id, 'PSNR', 'PSNR', `psnr-tooltip-${datasetName}`, datasetName, 'quality');
+                createPlot(qualityPlotDiv.id, 'MS-SSIM', 'MS_SSIM', `msssim-tooltip-${datasetName}`, datasetName, 'quality');
+                createPlot(qualityPlotDiv.id, 'MSE', 'MSE', `mse-tooltip-${datasetName}`, datasetName, 'quality');
+
+
+                // Task Metrics Plots (mAP, mIoU) - only if data exists
+                const hasTaskMetrics = plotData.datasets[datasetName].dl_models.some(d => d.mAP !== null || d.mIoU !== null);
+                if (hasTaskMetrics) {
+                    const taskPlotDiv = document.createElement('div');
+                    taskPlotDiv.classList.add('plot-section');
+                    taskPlotDiv.id = `task-plot-container-${datasetName.replace(/\s/g, '_')}`;
+                    datasetSection.appendChild(taskPlotDiv);
+
+                    const taskPlotTitle = document.createElement('h3');
+                    taskPlotTitle.classList.add('plot-subsection-title');
+                    taskPlotTitle.textContent = `Task Metrics (mAP, mIoU) vs BPP`;
+                    taskPlotDiv.appendChild(taskPlotTitle);
+
+                    createPlot(taskPlotDiv.id, 'mAP', 'mAP', `map-tooltip-${datasetName}`, datasetName, 'task');
+                    createPlot(taskPlotDiv.id, 'mIoU', 'mIoU', `miou-tooltip-${datasetName}`, datasetName, 'task');
+                }
+            }
+        };
+    </script>
+</body>
+</html>
