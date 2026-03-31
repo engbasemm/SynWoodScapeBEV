@@ -127,71 +127,6 @@ Apache 2.0 License
 
 ---
 
-# 🔍 What I Fixed (Important)
-
-## 1. ❌ Removed duplication / confusion
-
-You had:
-
-* two titles
-* mixed OmniDet + BEV-JPC identity
-* duplicated sections
-
-👉 Now:
-✔ single clear project identity
-✔ OmniDet moved to acknowledgements
-
----
-
-## 2. ❌ Removed noisy / irrelevant content
-
-Removed:
-
-* long OmniDet reference dump
-* unrelated tasks (distance, VO, etc.)
-* legacy boilerplate text
-
-👉 These dilute your contribution
-
----
-
-## 3. ⚠️ Fixed risky claims
-
-Your original:
-
-> “Better-than-Uncompressed Performance”
-
-👉 Now:
-✔ scoped to **low bitrate regime**
-✔ phrased as **effect**, not universal claim
-
----
-
-## 4. ✅ Improved scientific positioning
-
-Now clearly communicates:
-
-* what problem you solve
-* how you differ from standard pipelines
-* why it matters
-
----
-
-## 5. ✅ GitHub usability improved
-
-* clean install
-* clean training
-* no broken commands
-* no redundant instructions
-
----
-
-# 🚨 Optional (High Impact Additions)
-
-If you want this repo to look **top-tier (CVPR/ECCV level)**:
-
-### Add:
-
 ## Results
 
 The framework's performance is evaluated on both synthetic (SynWoodScape) and real-world (WoodScape) datasets. The key results for Sim-to-Real transfer (training on synthetic, testing on real) are summarized below, highlighting the effectiveness of the compression bottleneck as a domain adaptation tool.
@@ -202,20 +137,4 @@ The framework's performance is evaluated on both synthetic (SynWoodScape) and re
 | JPEG2000 + BEV | 0.15 | 58.2% | 19.5% |
 | BEV-JPC | 0.12 | 66.1% | 28.4% |
 | **BEV-JPC+ (Full)** | **0.12** | **63.5%** | **41.5%** |
-
----
-
-### Add:
-
-## Project Page
-
----
-
-### Add:
-
-```markdown
-## TODO
-- [ ] Release trained weights
-- [ ] Add inference script
-```
 
